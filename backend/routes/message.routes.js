@@ -4,15 +4,12 @@ const { authenticateToken } = require("./auth.routes.js");
 const {
   createConversationSchema,
   sendMessageSchema,
-  getMessagesSchema,
-  conversationIdSchema,
 } = require("../validations/index.js");
 const validationMiddleware = require("../middleware/validation.middleware.js");
 const responseService = require("../utils/handleResponse.js");
 
 const router = express.Router();
 
-// Get user conversations
 router.get("/conversations", authenticateToken, async (req, res) => {
   try {
     const conversations = await chatService.getUserConversations(req.user._id);
@@ -23,7 +20,7 @@ router.get("/conversations", authenticateToken, async (req, res) => {
       200
     );
   } catch (error) {
-    responseService.failer(
+    responseService.failure(
       res,
       "Failed to retrieve conversations",
       error.message,
@@ -32,7 +29,6 @@ router.get("/conversations", authenticateToken, async (req, res) => {
   }
 });
 
-// Get conversation by ID
 router.get(
   "/conversations/:conversationId",
   authenticateToken,
@@ -40,7 +36,6 @@ router.get(
     try {
       const { conversationId } = req.params;
 
-      // Basic validation for conversation ID
       if (!conversationId || conversationId.length !== 24) {
         return responseService.success(
           res,
@@ -55,16 +50,20 @@ router.get(
       );
 
       if (!conversation) {
-        return responseService.failer(res, "Conversation not found", null, 404);
+        return responseService.failure(
+          res,
+          "Conversation not found",
+          null,
+          404
+        );
       }
 
-      // Check if user is a participant
       const isParticipant = conversation.participants.some(
         (participant) => participant._id.toString() === req.user._id.toString()
       );
 
       if (!isParticipant) {
-        return responseService.failer(res, "Access denied", null, 403);
+        return responseService.failure(res, "Access denied", null, 403);
       }
 
       responseService.success(
@@ -74,7 +73,7 @@ router.get(
         200
       );
     } catch (error) {
-      responseService.failer(
+      responseService.failure(
         res,
         "Failed to retrieve conversation",
         error.message,
@@ -84,18 +83,15 @@ router.get(
   }
 );
 
-// Get messages for a conversation
 router.get(
   "/conversations/:conversationId/messages",
   authenticateToken,
   async (req, res) => {
     try {
       const { conversationId } = req.params;
-      const { limit = 50 } = req.query;
 
-      // Basic validation
       if (!conversationId || conversationId.length !== 24) {
-        return responseService.failer(
+        return responseService.failure(
           res,
           "Invalid conversation ID",
           null,
@@ -104,8 +100,7 @@ router.get(
       }
 
       const messages = await chatService.getConversationMessages(
-        conversationId,
-        parseInt(limit)
+        conversationId
       );
       responseService.success(
         res,
@@ -114,7 +109,7 @@ router.get(
         200
       );
     } catch (error) {
-      responseService.failer(
+      responseService.failure(
         res,
         "Failed to retrieve messages",
         error.message,
@@ -124,7 +119,6 @@ router.get(
   }
 );
 
-// Create a new conversation
 router.post(
   "/conversations",
   [authenticateToken, validationMiddleware(createConversationSchema)],
@@ -133,7 +127,7 @@ router.post(
       const { participantId } = req.body;
 
       if (participantId === req.user._id.toString()) {
-        return responseService.failer(
+        return responseService.failure(
           res,
           "Cannot create conversation with yourself",
           null,
@@ -152,7 +146,7 @@ router.post(
         201
       );
     } catch (error) {
-      responseService.failer(
+      responseService.failure(
         res,
         "Failed to create conversation",
         error.message,
@@ -162,7 +156,6 @@ router.post(
   }
 );
 
-// Send a message
 router.post(
   "/conversations/:conversationId/messages",
   [authenticateToken, validationMiddleware(sendMessageSchema)],
@@ -171,9 +164,8 @@ router.post(
       const { conversationId } = req.params;
       const { content, messageType = "text" } = req.body;
 
-      // Basic validation for conversation ID
       if (!conversationId || conversationId.length !== 24) {
-        return responseService.failer(
+        return responseService.failure(
           res,
           "Invalid conversation ID",
           null,
@@ -190,7 +182,12 @@ router.post(
 
       responseService.success(res, "Message sent successfully", message, 201);
     } catch (error) {
-      responseService.failer(res, "Failed to send message", error.message, 500);
+      responseService.failure(
+        res,
+        "Failed to send message",
+        error.message,
+        500
+      );
     }
   }
 );

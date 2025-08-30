@@ -5,17 +5,18 @@ import { Message } from "@/types";
 interface MessageListProps {
   messages: Message[];
   currentUserId: string;
+  messagesEndRef?: React.RefObject<HTMLDivElement>;
 }
 
 export default function MessageList({
   messages,
   currentUserId,
+  messagesEndRef,
 }: MessageListProps) {
   return (
-    <div className="flex-1 overflow-auto space-y-4">
+    <div className="flex-1 space-y-4">
       {messages.map((message) => {
         const isOwnMessage = message.sender?._id === currentUserId;
-
         return (
           <div
             key={message._id}
@@ -25,17 +26,15 @@ export default function MessageList({
               className={`max-w-[70%] rounded-lg p-3 ${
                 isOwnMessage
                   ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 text-gray-900"
+                  : "bg-gray-300 text-gray-900"
               }`}
             >
-              {/* TEXT MESSAGE */}
               {message.message_type === "text" && (
                 <p className="text-sm whitespace-pre-wrap break-words">
                   {message.content}
                 </p>
               )}
 
-              {/* IMAGE MESSAGE */}
               {message.message_type === "image" && (
                 <>
                   {message.content === "uploading..." ? (
@@ -60,14 +59,13 @@ export default function MessageList({
                         alt="Shared image"
                         width={300}
                         height={200}
-                        className="object-contain"
+                        className="object-contain rounded-lg"
                       />
                     </div>
                   )}
                 </>
               )}
 
-              {/* AUDIO MESSAGE (voice note) */}
               {message.message_type === "voice" && (
                 <>
                   {message.content === "uploading..." ? (
@@ -75,14 +73,13 @@ export default function MessageList({
                   ) : (
                     <audio
                       controls
-                      className="w-full max-w-xs"
+                      className="max-w-xs w-3xs"
                       src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${message?.content}`}
                     />
                   )}
                 </>
               )}
 
-              {/* TIMESTAMP */}
               <p
                 className={`text-xs mt-1 ${
                   isOwnMessage ? "text-indigo-200" : "text-gray-500"
@@ -94,6 +91,7 @@ export default function MessageList({
           </div>
         );
       })}
+      <div ref={messagesEndRef} />
     </div>
   );
 }

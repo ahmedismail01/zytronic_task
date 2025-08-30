@@ -13,7 +13,7 @@ module.exports = validateData = (schema) => {
         }));
         handleResponse.success(res, "Invalid data", errorMessages, 400);
       } else {
-        handleResponse.failer(res, "Internal Server Error", [], 500);
+        handleResponse.failure(res, "Internal Server Error", [], 500);
       }
     }
   };

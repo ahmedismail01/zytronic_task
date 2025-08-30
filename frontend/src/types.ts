@@ -4,17 +4,22 @@ export interface Conversation {
   _id: string;
   participants: User[];
   updated_at: string;
+  created_at: string;
+  isNew?: boolean;
+  last_message?: Message;
 }
 
 export interface User {
   _id: string;
   username: string;
   avatar_url?: string;
+  online: boolean;
 }
 
 export interface Message {
   _id: string;
   sender: User;
+  conversation_id: string;
   message_type: "text" | "image" | "voice";
   content: string;
   created_at: string;
@@ -28,11 +33,11 @@ export interface SocketResponse {
 }
 
 export interface ConversationsResponse extends SocketResponse {
-  conversations?: Conversation[];
+  data?: Conversation[];
 }
 
 export interface MessagesResponse extends SocketResponse {
-  messages?: Message[];
+  data?: Message[];
 }
 
 export interface ConversationResponse extends SocketResponse {

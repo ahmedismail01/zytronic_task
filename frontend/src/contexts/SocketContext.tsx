@@ -17,6 +17,7 @@ import {
   UsersSocketResponse,
   SendMessageData,
 } from "@/types";
+import backendConnector from "@/connectors/backendConnector";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -43,7 +44,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       if (response?.success) {
         cb(response);
       } else {
-        console.log(response?.message);
         return cb(response);
       }
     });
@@ -54,36 +54,19 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     socketRef.current.emit("get_users", cb);
   };
 
-  const getConversations = (cb: (data: ConversationsResponse) => void) => {
-    if (!socketRef.current) return;
-    socketRef.current.emit(
-      "get_conversations",
-      (response: ConversationsResponse) => {
-        if (response?.success) {
-          cb(response);
-        } else {
-          console.error("Failed to fetch conversations:", response?.error);
-        }
-      }
-    );
+  const getConversations = async (
+    cb: (data: ConversationsResponse) => void
+  ) => {
+    const response = await backendConnector.getConversations();
+    return cb(response);
   };
 
-  const getMessages = (
+  const getMessages = async (
     conversationId: string,
     cb: (data: MessagesResponse) => void
   ) => {
-    if (!socketRef.current) return;
-    socketRef.current.emit(
-      "get_messages",
-      conversationId,
-      (response: MessagesResponse) => {
-        if (response?.success) {
-          cb(response);
-        } else {
-          console.error("Failed to fetch messages:", response?.error);
-        }
-      }
-    );
+    const response = await backendConnector.getMessages(conversationId);
+    cb(response);
   };
 
   const registerSocketEvents = (socket: Socket) => {
@@ -115,9 +98,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       registerSocketEvents(newSocket);
 
       return () => {
+        
         newSocket.disconnect();
         socketRef.current = null;
         setIsConnected(false);
+
       };
     } else {
       if (socketRef.current) {

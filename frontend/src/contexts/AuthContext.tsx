@@ -8,13 +8,7 @@ import {
   ReactNode,
 } from "react";
 import backendConnector from "@/connectors/backendConnector";
-
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  avatar_url?: string;
-}
+import { User } from "@/types";
 
 interface AuthContextType {
   user: User | null;
@@ -48,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserProfile = async (authToken: string) => {
     try {
       const response = await backendConnector.getProfile();
-      console.log(response);
       setUser(response.data);
       setToken(authToken);
     } catch (error) {
@@ -62,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await backendConnector.login({ email, password });
-      console.log(response);
       const { token: authToken } = response.data;
       localStorage.setItem("token", authToken);
       await fetchUserProfile(authToken);

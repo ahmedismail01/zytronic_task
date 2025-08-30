@@ -1,4 +1,3 @@
-const { default: mongoose } = require("mongoose");
 const authService = require("../service/auth.service");
 const chatService = require("../service/chat.service");
 
@@ -26,12 +25,22 @@ module.exports = establishSocket = (io) => {
 
   const userSockets = new Map();
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     console.log(`User connected: ${socket.userId}`);
+    await authService.setUserStatus(socket.userId, true);
     userSockets.set(socket.userId.toString(), socket);
+    io.emit("user_status_change", {
+      userId: socket.userId,
+      online: true,
+    });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log(`User disconnected: ${socket.userId}`);
+      await authService.setUserStatus(socket.userId, false);
+      io.emit("user_status_change", {
+        userId: socket.userId,
+        online: false,
+      });
       userSockets.delete(socket.userId.toString());
     });
 
@@ -42,7 +51,13 @@ module.exports = establishSocket = (io) => {
           socket.userId,
           otherUserId
         );
-        console.log(conversation)
+
+        if (conversation?.isNew) {
+          const otherSocket = userSockets.get(otherUserId.toString());
+          if (otherSocket) {
+            otherSocket.emit("new_conversation", conversation);
+          }
+        }
         callback({ success: true, conversation });
       } catch (error) {
         console.log(error);
@@ -74,33 +89,14 @@ module.exports = establishSocket = (io) => {
             const otherSocket = userSockets.get(otherUserId._id.toString());
             if (otherSocket) {
               otherSocket.emit("new_message", message);
+              otherSocket.emit("conversation_update", conversation);
+              socket.emit("conversation_update", conversation);
             }
           }
         }
 
         callback({ success: true, message });
       } catch (error) {
-        if (data.messageType === "image") {
-          const conversation = await chatService.getConversationById(
-            data.conversationId
-          );
-          if (conversation) {
-            const otherUserId = conversation.participants.find(
-              (participant) =>
-                participant._id.toString() !== socket.userId.toString()
-            );
-
-            if (otherUserId) {
-              const otherSocket = userSockets.get(otherUserId._id.toString());
-              if (otherSocket) {
-                otherSocket.emit("image_upload_failed", {
-                  conversationId: data.conversationId,
-                  error: error.message,
-                });
-              }
-            }
-          }
-        }
         callback({ success: false, error: error.message });
       }
     });
@@ -110,7 +106,6 @@ module.exports = establishSocket = (io) => {
         const messages = await chatService.getConversationMessages(
           conversationId
         );
-        console.log(conversationId);
         callback({ success: true, messages });
       } catch (error) {
         callback({ success: false, error: error.message });

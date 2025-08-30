@@ -3,7 +3,7 @@ class ResponseService {
     return res.status(status).json({ success: true, message, data });
   };
 
-  failer = (res, message, errors, status) => {
+  failure = (res, message, errors, status) => {
     return res.status(status).json({ success: false, message, errors });
   };
 }

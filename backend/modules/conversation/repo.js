@@ -8,7 +8,12 @@ class ConversationRepository {
     const conversation = new this.model({
       participants,
     });
-    return conversation.save();
+
+    conversation.save();
+
+    await conversation.populate("participants", "username avatar_url");
+
+    return conversation;
   }
 
   async getConversationById(id) {
@@ -16,19 +21,29 @@ class ConversationRepository {
   }
 
   async getConversationByParticipants(participants) {
-    return this.model.findOne({
-      participants: {
-        $all: participants,
-      },
+    const conversation = await this.model.findOne({
+      participants: { $all: participants },
     });
+
+    if (!conversation) {
+      console.log("No conversation found");
+      return null;
+    }
+
+    await conversation.populate("participants", "username avatar_url");
+    await conversation.populate("last_message");
+
+    return conversation;
   }
 
   async getUserConversations(participant) {
-    return this.model.find({
-      participants: {
-        $in: [participant],
-      },
-    });
+    const conversation = await this.model
+      .find({
+        participants: { $in: [participant] },
+      })
+      .populate("last_message", "content message_type sender created_at")
+      .populate("participants", "username avatar_url");
+    return conversation;
   }
 }
 

@@ -14,7 +14,7 @@ router.post(
   async (req, res) => {
     try {
       if (!req.file) {
-        return responseService.failer(res, "No file uploaded", null, 400);
+        return responseService.failure(res, "No file uploaded", null, 400);
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
@@ -27,7 +27,7 @@ router.post(
     } catch (error) {
       if (error instanceof multer.MulterError) {
         if (error.code === "LIMIT_FILE_SIZE") {
-          return responseService.failer(
+          return responseService.failure(
             res,
             "File size must be less than 5MB",
             null,
@@ -35,7 +35,7 @@ router.post(
           );
         }
       }
-      responseService.failer(res, "Failed to upload file", error.message, 500);
+      responseService.failure(res, "Failed to upload file", error.message, 500);
     }
   }
 );
@@ -47,7 +47,7 @@ router.post(
   async (req, res) => {
     try {
       if (!req.file) {
-        return responseService.failer(res, "No voice note uploaded", null, 400);
+        return responseService.failure(res, "No voice note uploaded", null, 400);
       }
 
       const audioUrl = `/uploads/${req.file.filename}`;
@@ -58,7 +58,7 @@ router.post(
         201
       );
     } catch (err) {
-      responseService.failer(
+      responseService.failure(
         res,
         "Failed to upload voice note",
         err.message,

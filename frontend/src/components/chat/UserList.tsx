@@ -9,11 +9,8 @@ interface UserListProps {
 export default function UserList({ users, onSelectUser }: UserListProps) {
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold">Available Users</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Select a user to start chatting
-        </p>
+      <div className="p-2 border-b border-gray-200">
+        <h2 className="text-lg font-semibold">Users</h2>
       </div>
       <div className="flex-1 overflow-y-auto">
         {users.length === 0 ? (
@@ -25,9 +22,9 @@ export default function UserList({ users, onSelectUser }: UserListProps) {
             <button
               key={user._id}
               onClick={() => onSelectUser(user)}
-              className="w-full p-4 flex items-center space-x-4 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100"
+              className="w-full p-2 flex items-center space-x-4 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100"
             >
-              <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 {user.avatar_url ? (
                   <Image
                     src={user.avatar_url}
@@ -42,14 +39,15 @@ export default function UserList({ users, onSelectUser }: UserListProps) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium justify-start flex text-gray-900 truncate">
                   {user.username}
                 </p>
-                <p className="text-xs text-gray-500">
-                  Click to start conversation
-                </p>
               </div>
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div
+                className={`w-2 h-2 ${
+                  user.online ? "bg-green-500" : "bg-gray-400"
+                } rounded-full`}
+              ></div>
             </button>
           ))
         )}

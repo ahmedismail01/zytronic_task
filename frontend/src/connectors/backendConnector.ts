@@ -40,7 +40,6 @@ class BackendConnector {
       url: "/api/auth/login",
       data,
     };
-    console.log(requestConfig);
     return request
       .post(requestConfig)
       .then((res: Response) => res)
@@ -104,6 +103,36 @@ class BackendConnector {
     };
     return request
       .post(requestConfig)
+      .then((res: Response) => res)
+      .catch((err: any) => err);
+  }
+
+  async getMessages(conversationId: string) {
+    const token = localStorage.getItem("token");
+    const requestConfig = {
+      baseURL: config.BACKEND_BASE_URL,
+      url: `/api/messages/conversations/${conversationId}/messages`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return request
+      .get(requestConfig)
+      .then((res: Response) => res)
+      .catch((err: any) => err);
+  }
+
+  async getConversations() {
+    const token = localStorage.getItem("token");
+    const requestConfig = {
+      baseURL: config.BACKEND_BASE_URL,
+      url: "/api/messages/conversations",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+    return request
+      .get(requestConfig)
       .then((res: Response) => res)
       .catch((err: any) => err);
   }

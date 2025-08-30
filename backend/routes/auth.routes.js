@@ -15,9 +15,10 @@ router.post(
   async (req, res) => {
     try {
       const result = await authService.register(req.body);
+
       responseService.success(res, "User registered successfully", result, 201);
     } catch (error) {
-      responseService.failer(res, error.message, null, 400);
+      responseService.failure(res, error.message, null, 400);
     }
   }
 );
@@ -27,7 +28,7 @@ router.post("/login", validationMiddleware(loginSchema), async (req, res) => {
     const result = await authService.login(req.body.email, req.body.password);
     responseService.success(res, "Login successful", result, 200);
   } catch (error) {
-    responseService.failer(res, error.message, null, 401);
+    responseService.failure(res, error.message, null, 401);
   }
 });
 
@@ -42,7 +43,7 @@ router.get("/profile", authService.authenticateToken, async (req, res) => {
       200
     );
   } catch (error) {
-    responseService.failer(res, error.message, null, 404);
+    responseService.failure(res, error.message, null, 404);
   }
 });
 
@@ -57,7 +58,7 @@ router.get("/users", authService.authenticateToken, async (req, res) => {
       200
     );
   } catch (error) {
-    responseService.failer(
+    responseService.failure(
       res,
       "Failed to retrieve users",
       error.message,
@@ -85,7 +86,7 @@ router.put(
         200
       );
     } catch (error) {
-      responseService.failer(res, error.message, null, 400);
+      responseService.failure(res, error.message, null, 400);
     }
   }
 );

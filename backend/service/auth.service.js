@@ -5,7 +5,6 @@ const userRepository = require("../modules/user/repo");
 class AuthService {
   async register(userData) {
     try {
-      console.log(userData)
       const existingUser = await userRepository.findOne({
         email: userData.email,
       });
@@ -103,7 +102,9 @@ class AuthService {
       }
 
       if (updateData.username && updateData.username !== user.username) {
-        const existingUser = await userRepository.findOne({ username: updateData.username });
+        const existingUser = await userRepository.findOne({
+          username: updateData.username,
+        });
         if (existingUser) {
           throw new Error("Username already taken");
         }
@@ -119,7 +120,21 @@ class AuthService {
   async getAllUsers(currentUserId) {
     try {
       const users = await userRepository.findAll();
-      return users.filter(user => user._id.toString() !== currentUserId.toString());
+      return users.filter(
+        (user) => user._id.toString() !== currentUserId.toString()
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async setUserStatus(userId, isOnline) {
+    try {
+      const user = await userRepository.update(userId, { online: isOnline });
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return user;
     } catch (error) {
       throw error;
     }
@@ -132,13 +147,13 @@ class AuthService {
     if (!token) {
       return res.status(401).json({ error: "Access token required" });
     }
-    
+
     try {
       const user = await this.verifyToken(token);
       req.user = user;
       next();
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return res.status(403).json({ error: "Invalid token" });
     }
   };
